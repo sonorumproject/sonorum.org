@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Leadership - Sonorum Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tai+Heritage+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#B24D2E; --black:#000; --white:#fff; --gray:#7a7a7a; }
+
+        html, body { height:100%; }
+        body{
+            margin:0; padding:0; background:var(--white); color:var(--black);
+            font-family:'Tai Heritage Pro', Georgia, "Times New Roman", Times, serif;
+            font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+        }
+
+        a{ color:var(--black); text-decoration:none; }
+        a:hover{ color:var(--primary); }
+
+        .container{ width:92%; max-width:920px; margin:0 auto; }
+
+        .nav{ display:flex; align-items:center; justify-content:space-between; padding:16px 0; letter-spacing:0.03em; }
+        .brand{ font-weight:700; }
+        .nav-links{ display:flex; gap:18px; font-variant:small-caps; letter-spacing:0.06em; }
+        .nav-links a[aria-current="page"]{ color:var(--primary); }
+
+        h1,h2,h3,h4,h5,h6{ font-weight:700; margin:0 0 12px 0; line-height:1.2; font-size:16px; }
+        .muted{ color:var(--gray); }
+        .section{ padding:20px 0; }
+
+        .grid{ display:grid; grid-template-columns:1fr; gap:18px; }
+        @media(min-width:720px){ .grid{ grid-template-columns:1fr 1fr; } }
+
+        footer{ padding:20px 0 40px; color:var(--gray); }
+    </style>
+</head>
+<body>
+<header class="container nav">
+    <div class="brand">
+        <a href="/">
+            <img src="/sonorumlogo.svg" alt="Sonorum Project Logo" style="height:38px; vertical-align:middle; margin-right:10px;">
+        </a>
+    </div>
+    <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/leadership" aria-current="page">Leadership</a>
+        <a href="/contact">Contact</a>
+    </nav>
+</header>
+
+<main class="container">
+    <header class="section">
+        <h1>Leadership</h1>
+        <p class="muted">Board members and advisors who guide the work of Sonorum.</p>
+    </header>
+
+    <section class="section grid" aria-labelledby="board-heading">
+        <div>
+            <h2 id="board-heading">Executive Board</h2>
+            <ul>
+                <li><strong>Elliot Chang</strong></li>
+                <li><strong>Mila Fan</strong></li>
+                <li><strong>Tiger Jing</strong></li>
+            </ul>
+        </div>
+        <div>
+            <h2>Associate Board</h2>
+            <ul>
+                <li><strong>Currently recruiting for 2025-2026 year</strong></li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="section" aria-labelledby="advisor-heading">
+        <h2 id="advisor-heading">Advisor</h2>
+        <p>
+            <strong>Mrs. Barnes</strong> — Club Advisor
+        </p>
+    </section>
+
+    <section class="section" aria-labelledby="roles-heading">
+        <h2 id="roles-heading">How leadership works</h2>
+        <p>
+            The Executive Board is responsible for the overall direction and management of Sonorum Project, including planning events, coordinating projects, and overseeing communications. The Associate Board supports the Executive Board in these tasks and helps with specific projects as needed. Mrs. Barnes, our Club Advisor, provides guidance and support to ensure we stay aligned with our mission and values.
+        </p>
+    </section>
+</main>
+
+<footer class="container">
+    <div class="muted">© <span id="year"></span> Sonorum Project • Leadership</div>
+</footer>
+
+<script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+</body>
+</html>

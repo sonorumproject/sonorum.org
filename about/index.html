@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home - Sonorum Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tai+Heritage+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #B24D2E;
+            --black: #000000;
+            --white: #ffffff;
+            --gray: #7a7a7a;
+        }
+
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--white);
+            color: var(--black);
+            font-family: 'Tai Heritage Pro', Georgia, "Times New Roman", Times, serif;
+            font-size: 16px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a { color: var(--black); text-decoration: none; }
+        a:hover { color: var(--primary); }
+        a:focus { outline: 1px dotted var(--gray); outline-offset: 2px; }
+
+        .container { width: 92%; max-width: 920px; margin: 0 auto; }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            letter-spacing: 0.03em;
+        }
+
+        .brand {
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 18px;
+            font-variant: small-caps;
+            letter-spacing: 0.06em;
+        }
+
+        .nav-links a { color: var(--black); }
+        .nav-links a:hover { color: var(--primary); }
+
+        .page-head {
+            padding: 20px 0 0;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            margin: 0 0 12px 0;
+            line-height: 1;
+            font-size: 16px;
+        }
+        .subtitle { max-width: 58ch; color: var(--black); }
+
+        .section { padding: 28px 0; }
+        .muted { color: var(--gray); }
+
+        .list { list-style: none; padding: 0; margin: 0; }
+        .list li {
+            padding: 6px 0;
+            line-height: 1;
+        }
+
+        footer { padding: 20px 0 40px; color: var(--gray); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        @media (min-width: 720px) {
+            .grid { grid-template-columns: 1.2fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+<header class="container nav" role="navigation" aria-label="Primary">
+    <div class="brand">
+        <a href="/">
+            <img src="/sonorumlogo.svg" alt="Sonorum Project Logo" style="height:38px; vertical-align:middle; margin-right:10px;">
+        </a>
+    </div>
+    <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about" aria-current="page">About</a>
+        <a href="/leadership">Leadership</a>
+        <a href="/contact">Contact</a>
+    </nav>
+</header>
+
+<main class="container" role="main">
+    <header class="page-head">
+        <h1>About Sonorum Project</h1>
+        <p class="lede">We collaborate on individual and group projects—shaped by peer feedback, our Board, and our Club Advisor, Mrs. Barnes—and present at the Winter Sunset Coffee House, the Spring Abbot Cabaret, our own Sonorum event, and online.</p>
+    </header>
+
+    <section class="section grid" aria-labelledby="mission-heading">
+        <div>
+            <h2 id="mission-heading">Mission</h2>
+            <p>
+                Sonorum covers three major virtues of the non-classical routes at Phillips Academy. The Carmen: the lyricism, the poetic nature of music; the Confectio: the production, the aural theory, the harmonic writings of music; and the Consequentia: the performance art, solo / band performances, the aftermath of writing a song.
+            </p>
+            <p>
+                We pledge to encompass all genres of music: whether it’s pop, hip-hop, country, or even classical, we are an all-accepting community.
+            </p>
+        </div>
+        <div>
+            <h2>Advisor & Guidance</h2>
+            <p>
+                Our Club Advisor, <strong>Mrs. Barnes</strong>, helps shape sessions and showcases. The Board facilitates peer feedback and keeps projects moving.
+            </p>
+        </div>
+    </section>
+
+    <section class="section grid" aria-labelledby="process-heading">
+        <div>
+            <h2>Where we share</h2>
+            <ul>
+                <li><span class="muted">Winter</span> — Sunset Coffee House</li>
+                <li><span class="muted">Spring</span> — Abbot Cabaret</li>
+                <li><span class="muted">Late Spring</span> — Sonorum Event</li>
+                <li><span class="muted">Anytime</span> — Web & social releases</li>
+            </ul>
+        </div>
+    </section>
+</main>
+
+<footer class="container">
+    <div class="muted">© <span id="year"></span> Sonorum Project • About</div>
+</footer>
+
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

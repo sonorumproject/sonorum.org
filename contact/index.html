@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contact — sonorumProject</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tai+Heritage+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#B24D2E; --black:#000; --white:#fff; --gray:#7a7a7a; }
+
+        html, body { height:100%; }
+        body{
+            margin:0; padding:0; background:var(--white); color:var(--black);
+            font-family:'Tai Heritage Pro', Georgia, "Times New Roman", Times, serif;
+            font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+        }
+
+        a{ color:var(--black); text-decoration:none; }
+        a:hover{ color:var(--primary); }
+        a:focus{ outline:1px dotted var(--gray); outline-offset:2px; }
+
+        .container{ width:92%; max-width:920px; margin:0 auto; }
+
+        .nav{ display:flex; align-items:center; justify-content:space-between; padding:16px 0; letter-spacing:0.03em; }
+        .brand{ font-weight:700; }
+        .nav-links{ display:flex; gap:18px; font-variant:small-caps; letter-spacing:0.06em; }
+        .nav-links a[aria-current="page"]{ color:var(--primary); }
+
+        h1,h2,h3,h4,h5,h6{ font-weight:700; margin:0 0 12px 0; line-height:1.2; font-size:16px; }
+        .muted{ color:var(--gray); }
+        .section{ padding:20px 0; }
+
+        /* Form */
+        form { max-width: 720px; }
+        label { display:block; margin:10px 0 4px; }
+        input, textarea { width:100%; padding:8px; border:1px solid var(--black); background:var(--white); color:var(--black); font-family:inherit; font-size:16px; }
+        textarea { min-height:120px; resize:vertical; }
+        .actions { margin-top:12px; }
+        button { background:var(--black); color:var(--white); border:1px solid var(--black); padding:8px 12px; font-family:inherit; font-size:16px; cursor:pointer; }
+        button:hover { background:var(--primary); border-color:var(--primary); }
+
+        /* Social buttons */
+        .social-buttons { display:flex; gap:12px; margin-top:10px; }
+        .social-buttons a { display:inline-block; padding:8px 16px; border:1px solid var(--black); background:var(--white); color:var(--black); text-align:center; font-family:inherit; font-size:16px; }
+        .social-buttons a:hover { background:var(--primary); color:var(--white); border-color:var(--primary); }
+
+        footer{ padding:20px 0 40px; color:var(--gray); }
+    </style>
+</head>
+<body>
+<header class="container nav">
+    <div class="brand">
+        <a href="/">
+            <img src="/sonorumlogo.svg" alt="Sonorum Project Logo" style="height:38px; vertical-align:middle; margin-right:10px;">
+        </a>
+    </div>
+    <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/leadership">Leadership</a>
+        <a href="/contact" aria-current="page">Contact</a>
+    </nav>
+</header>
+
+<main class="container">
+    <header class="section">
+        <h1>Contact</h1>
+        <p class="muted">Reach out with questions, project ideas, or to join a session.</p>
+    </header>
+
+    <section class="section" aria-labelledby="email-heading">
+        <h2 id="email-heading">Email</h2>
+        <p>
+            Write to us at <a href="mailto:hello@sonorum.org">hello@sonorum.org</a>.
+        </p>
+        <div class="social-buttons">
+            <a href="https://instagram.com/sonorum.official" target="_blank" rel="noopener">Instagram</a>
+        </div>
+    </section>
+</main>
+
+<footer class="container">
+    <div class="muted">© <span id="year"></span> Sonorum Project • Contact</div>
+</footer>
+
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

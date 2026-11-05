@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "sonorum-org",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sonorum",
+      // Replace with the id printed by `npx wrangler d1 create sonorum`.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "send_email": [{ "name": "EMAIL" }],
+  "ratelimits": [
+    // Applied per IP to sign-in, sign-up and reset requests.
+    { "name": "AUTH_LIMIT", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }
+  ],
+  "vars": {
+    "MAIL_FROM": "hello@sonorum.org",
+    "TURNSTILE_SITE_KEY": ""
+  },
+  "observability": { "enabled": true }
+}

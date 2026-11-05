@@ -48,15 +48,18 @@
 
         .nav-links {
             display: flex;
-            gap: 18px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 4px 18px;
             font-variant: small-caps;
             letter-spacing: 0.06em;
         }
 
         .nav-links a { color: var(--black); }
         .nav-links a:hover { color: var(--primary); }
+        @media (max-width: 560px) { .nav { flex-wrap: wrap; } .nav-links { justify-content: flex-start; } }
 
-        .page-head {
+        .hero {
             padding: 20px 0 0;
         }
         h1, h2, h3, h4, h5, h6 {
@@ -97,54 +100,58 @@
         </a>
     </div>
     <nav class="nav-links">
-        <a href="/">Home</a>
-        <a href="/about" aria-current="page">About</a>
+        <a href="/" aria-current="page">Home</a>
+        <a href="/about">About</a>
         <a href="/leadership">Leadership</a>
         <a href="/contact">Contact</a>
+        <a href="/join">Join</a>
     </nav>
 </header>
 
-<main class="container" role="main">
-    <header class="page-head">
-        <h1>About Sonorum Project</h1>
-        <p class="lede">We collaborate on individual and group projects—shaped by peer feedback, our Board, and our Club Advisor, Mrs. Barnes—and present at the Winter Sunset Coffee House, the Spring Abbot Cabaret, our own Sonorum event, and online.</p>
-    </header>
+<main class="container">
+    <section class="hero">
+        <h1 class="title">The (prospective) club for all things songwriting and performance</h1>
+        <p class="subtitle">
+            We collaborate on individual and group projects—shaped by peer feedback, our Board, and our Club Advisor, Mrs. Barnes—and present at the Winter Sunset Coffee House, the Spring Abbot Cabaret, our own Sonorum event, and online.
+        </p>
+    </section>
 
-    <section class="section grid" aria-labelledby="mission-heading">
+    <section class="section grid" aria-label="Two ways to join">
         <div>
-            <h2 id="mission-heading">Mission</h2>
-            <p>
-                Sonorum covers three major virtues of the non-classical routes at Phillips Academy. The Carmen: the lyricism, the poetic nature of music; the Confectio: the production, the aural theory, the harmonic writings of music; and the Consequentia: the performance art, solo / band performances, the aftermath of writing a song.
-            </p>
-            <p>
-                We pledge to encompass all genres of music: whether it’s pop, hip-hop, country, or even classical, we are an all-accepting community.
-            </p>
+            <h2><a href="/join">sonorumBands</a></h2>
+            <p>Get placed in a band, rehearse, and play shows.</p>
         </div>
         <div>
-            <h2>Advisor & Guidance</h2>
-            <p>
-                Our Club Advisor, <strong>Mrs. Barnes</strong>, helps shape sessions and showcases. The Board facilitates peer feedback and keeps projects moving.
-            </p>
+            <h2><a href="/join">sonorumCreate</a></h2>
+            <p>Write, produce, and release songs with other people.</p>
         </div>
     </section>
 
-    <section class="section grid" aria-labelledby="process-heading">
+    <section class="section grid" aria-labelledby="what-we-do-heading">
+        <div>
+            <h2 id="what-we-do-heading">Projects</h2>
+            <ul class="list">
+                <li>(Coming out Spring 2026)</li>
+            </ul>
+        </div>
         <div>
             <h2>Where we share</h2>
-            <ul>
-                <li><span class="muted">Winter</span> — Sunset Coffee House</li>
-                <li><span class="muted">Spring</span> — Abbot Cabaret</li>
-                <li><span class="muted">Late Spring</span> — Sonorum Event</li>
-                <li><span class="muted">Anytime</span> — Web & social releases</li>
+            <ul class="list">
+                <li><span class="muted">December</span> — Winter Sunset Coffee House</li>
+                <li><span class="muted">April</span> — Spring Abbot Cabaret</li>
+                <li><span class="muted">May</span> — Sonorum Event</li>
+                <li><span class="muted">Year-round</span> — Web & social releases</li>
             </ul>
         </div>
     </section>
 </main>
 
 <footer class="container">
-    <div class="muted">© <span id="year"></span> Sonorum Project • About</div>
+    <div class="muted">© <span id="year"></span> Sonorum Project</div>
 </footer>
 
-<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+</script>
 </body>
 </html>

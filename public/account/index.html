@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your account - Sonorum Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tai+Heritage+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/sonorum.css">
+    <meta name="robots" content="noindex">
+</head>
+<body>
+<header class="container nav">
+    <div class="brand"><a href="/"><img src="/sonorumlogo.svg" alt="Sonorum Project Logo"></a></div>
+    <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/leadership">Leadership</a>
+        <a href="/contact">Contact</a>
+        <a href="/join">Join</a>
+    </nav>
+</header>
+
+<main class="container">
+    <header class="page-head">
+        <h1 id="hello">Your account</h1>
+        <p class="muted" id="who"></p>
+    </header>
+    <p class="error" id="load-error" role="alert" hidden></p>
+
+    <section class="section" id="status" hidden aria-labelledby="status-heading">
+        <h2 id="status-heading">Your groups</h2>
+        <div id="status-body"></div>
+    </section>
+
+    <form id="profile" hidden novalidate>
+        <div class="q-section">
+            <fieldset class="field" id="f-tracks">
+                <legend>What do you want to join? <span class="req" aria-hidden="true">*</span></legend>
+                <span class="help">Choose one or both.</span>
+                <div class="tracks" id="tracks"></div>
+            </fieldset>
+        </div>
+        <div id="sections"></div>
+        <div class="section">
+            <p class="muted" style="max-width:58ch">The Board sees your answers. Once groups are released, the people in your group see your name, your email, and what you play or do.</p>
+            <p class="error" id="form-error" role="alert" hidden></p>
+            <div class="form-actions">
+                <button class="btn primary" id="submit">Send to the Board</button>
+                <span class="muted" id="save-state" aria-live="polite"></span>
+            </div>
+        </div>
+    </form>
+</main>
+
+<footer class="container">
+    <div class="form-actions">
+        <span class="muted">© <span id="year"></span> Sonorum Project • Account</span>
+        <a class="inline-link" id="board-link" href="/board" hidden>Board panel</a>
+        <button class="link-btn" id="signout" type="button">Sign out</button>
+    </div>
+</footer>
+<script type="module" src="/assets/account.js"></script>
+</body>
+</html>

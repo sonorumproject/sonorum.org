@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Join - Sonorum Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tai+Heritage+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/sonorum.css">
+</head>
+<body>
+<header class="container nav">
+    <div class="brand"><a href="/"><img src="/sonorumlogo.svg" alt="Sonorum Project Logo"></a></div>
+    <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/leadership">Leadership</a>
+        <a href="/contact">Contact</a>
+        <a href="/join" aria-current="page">Join</a>
+    </nav>
+</header>
+
+<main class="container">
+    <header class="page-head">
+        <h1>Join Sonorum</h1>
+        <p class="subtitle">Sonorum now has two sides. Join one or both. Make an account, answer a few questions, and the Board will place you with people who fit.</p>
+    </header>
+
+    <section class="section grid">
+        <div>
+            <h2>sonorumBands</h2>
+            <p>Get placed in a band, rehearse, and play shows.</p>
+        </div>
+        <div>
+            <h2>sonorumCreate</h2>
+            <p>Write, produce, and release songs with other people.</p>
+        </div>
+    </section>
+
+    <section class="section" aria-live="polite">
+        <form id="signup" class="form-narrow" data-view="signup" hidden>
+            <h2>Create your account</h2>
+            <label class="field"><span class="q">Your name</span><input class="input" name="fullName" autocomplete="name" required maxlength="80"></label>
+            <label class="field"><span class="q">Email</span><input class="input" name="email" type="email" autocomplete="email" required></label>
+            <label class="field"><span class="q">Password</span><span class="help">At least 10 characters.</span><input class="input" name="password" type="password" autocomplete="new-password" required minlength="10"></label>
+            <div id="turnstile" class="field"></div>
+            <p class="error" data-error hidden></p>
+            <div class="form-actions">
+                <button class="btn primary">Create account</button>
+                <a class="inline-link" href="#signin">I already have one</a>
+            </div>
+        </form>
+
+        <form id="signin" class="form-narrow" data-view="signin" hidden>
+            <h2>Sign in</h2>
+            <label class="field"><span class="q">Email</span><input class="input" name="email" type="email" autocomplete="email" required></label>
+            <label class="field"><span class="q">Password</span><input class="input" name="password" type="password" autocomplete="current-password" required></label>
+            <p class="error" data-error hidden></p>
+            <div class="form-actions">
+                <button class="btn primary">Sign in</button>
+                <a class="inline-link" href="#forgot">Forgot password</a>
+                <a class="inline-link" href="#signup">Create an account</a>
+            </div>
+        </form>
+
+        <form id="forgot" class="form-narrow" data-view="forgot" hidden>
+            <h2>Reset your password</h2>
+            <label class="field"><span class="q">Email</span><input class="input" name="email" type="email" autocomplete="email" required></label>
+            <p class="error" data-error hidden></p>
+            <div class="form-actions">
+                <button class="btn primary">Send reset link</button>
+                <a class="inline-link" href="#signin">Back to sign in</a>
+            </div>
+        </form>
+
+        <form id="reset" class="form-narrow" data-view="reset" hidden>
+            <h2>Choose a new password</h2>
+            <label class="field"><span class="q">New password</span><span class="help">At least 10 characters.</span><input class="input" name="password" type="password" autocomplete="new-password" required minlength="10"></label>
+            <p class="error" data-error hidden></p>
+            <div class="form-actions"><button class="btn primary">Save password</button></div>
+        </form>
+
+        <div data-view="sent" class="notice" hidden>
+            <h2>Check your email</h2>
+            <p id="sent-text"></p>
+        </div>
+    </section>
+</main>
+
+<footer class="container"><div class="muted">© <span id="year"></span> Sonorum Project • Join</div></footer>
+<script type="module" src="/assets/join.js"></script>
+</body>
+</html>

@@ -24,7 +24,8 @@
 
         .nav{ display:flex; align-items:center; justify-content:space-between; padding:16px 0; letter-spacing:0.03em; }
         .brand{ font-weight:700; }
-        .nav-links{ display:flex; gap:18px; font-variant:small-caps; letter-spacing:0.06em; }
+        .nav-links{ display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px 18px; font-variant:small-caps; letter-spacing:0.06em; }
+        @media (max-width: 560px) { .nav { flex-wrap: wrap; } .nav-links { justify-content: flex-start; } }
         .nav-links a[aria-current="page"]{ color:var(--primary); }
 
         h1,h2,h3,h4,h5,h6{ font-weight:700; margin:0 0 12px 0; line-height:1.2; font-size:16px; }
@@ -49,6 +50,7 @@
         <a href="/about">About</a>
         <a href="/leadership" aria-current="page">Leadership</a>
         <a href="/contact">Contact</a>
+        <a href="/join">Join</a>
     </nav>
 </header>
 

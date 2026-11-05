@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex">
+    <title>Board - Sonorum Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tai+Heritage+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/sonorum.css">
+    <link rel="stylesheet" href="/assets/board.css">
+</head>
+<body>
+<header class="container wide nav">
+    <div class="brand"><a href="/"><img src="/sonorumlogo.svg" alt="Sonorum Project Logo"></a></div>
+    <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/account">Account</a>
+        <a href="/board" aria-current="page">Board</a>
+    </nav>
+</header>
+
+<main class="container wide">
+    <p class="error" id="fatal" role="alert" hidden></p>
+    <div id="app" hidden>
+        <div class="bar">
+            <div class="tabs" role="tablist" aria-label="Track" id="tabs"></div>
+            <div class="bar-actions">
+                <button class="btn" id="new-group" type="button">New group</button>
+                <button class="btn" id="access" type="button">Board access</button>
+            </div>
+        </div>
+
+        <div class="release" id="release" aria-live="polite"></div>
+
+        <div class="board">
+            <aside class="pool" id="pool-col" aria-label="Unplaced people">
+                <div class="pool-head">
+                    <h2 id="pool-title"></h2>
+                    <label class="visually-hidden" for="search">Search people</label>
+                    <input class="input" id="search" type="search" placeholder="Search names, artists, anything" autocomplete="off">
+                    <div class="filters">
+                        <label><span class="visually-hidden">Filter by part</span><select class="input" id="f-part"></select></label>
+                        <label><span class="visually-hidden">Filter by day</span><select class="input" id="f-day"></select></label>
+                    </div>
+                </div>
+                <div class="drop" id="pool" data-drop="pool"></div>
+                <div id="pool-foot"></div>
+            </aside>
+            <section class="groups" id="groups" aria-label="Groups"></section>
+        </div>
+        <p class="muted sync" id="sync" aria-live="polite"></p>
+    </div>
+</main>
+
+<dialog class="drawer" id="drawer" aria-labelledby="drawer-title"></dialog>
+<dialog class="modal" id="modal"></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script type="module" src="/assets/board.js"></script>
+</body>
+</html>

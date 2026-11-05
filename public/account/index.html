@@ -29,6 +29,16 @@
     </header>
     <p class="error" id="load-error" role="alert" hidden></p>
 
+    <form id="verify" class="form-narrow" hidden>
+        <p>Enter the password you chose when you signed up.</p>
+        <label class="field"><span class="q">Password</span><input class="input" id="verify-password" type="password" autocomplete="current-password" required></label>
+        <p class="error" id="verify-error" role="alert" hidden></p>
+        <div class="form-actions">
+            <button class="btn primary">Confirm my email</button>
+            <a class="inline-link" href="/join/#forgot">Forgot password</a>
+        </div>
+    </form>
+
     <section class="section" id="status" hidden aria-labelledby="status-heading">
         <h2 id="status-heading">Your groups</h2>
         <div id="status-body"></div>

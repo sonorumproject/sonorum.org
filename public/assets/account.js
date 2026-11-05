@@ -207,23 +207,35 @@ window.addEventListener('beforeunload', (e) => {
 
 // ---------- Start ----------
 
+function askToVerify(token) {
+  $('hello').textContent = 'Confirm your email';
+  $('signout').hidden = true;
+  $('verify').hidden = false;
+  $('verify-password').focus();
+  $('verify').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = $('verify').querySelector('button');
+    $('verify-error').hidden = true;
+    button.disabled = true;
+    try {
+      await api('/auth/verify', { method: 'POST', body: { token, password: $('verify-password').value } });
+      $('verify').hidden = true;
+      $('signout').hidden = false;
+      await start();
+    } catch (err) {
+      $('verify-error').textContent = err.message;
+      $('verify-error').hidden = false;
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
 async function start() {
   const hash = location.hash.slice(1);
-  if (hash.startsWith('verify=')) {
-    history.replaceState(null, '', location.pathname);
-    try {
-      await api('/auth/verify', { method: 'POST', body: { token: hash.slice(7) } });
-    } catch (err) {
-      const { user } = await api('/me');
-      if (!user) {
-        $('load-error').textContent = `${err.message} Signing in sends a new link.`;
-        $('load-error').hidden = false;
-        $('signout').hidden = true;
-        return;
-      }
-    }
-  }
+  if (hash.startsWith('verify=')) history.replaceState(null, '', location.pathname);
   const me = await api('/me');
+  if (!me.user && hash.startsWith('verify=')) return askToVerify(hash.slice(7));
   if (!me.user) {
     location.replace('/join/#signin');
     return;

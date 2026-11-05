@@ -106,7 +106,7 @@ const mailHtml = (intro, url, label) =>
 async function sendVerify(env, origin, user) {
   const token = await issueToken(env, user.id, 'verify');
   const url = `${origin}/account/#verify=${token}`;
-  const intro = 'Confirm your email to finish creating your Sonorum account.';
+  const intro = 'Confirm your email to finish creating your Sonorum account. You will be asked for the password you chose.';
   await sendEmail(env, user.email, 'Confirm your Sonorum account', `${intro}\n\n${url}\n\nThis link lasts 48 hours.`, mailHtml(intro, url, 'Confirm my email'));
 }
 
@@ -168,13 +168,17 @@ async function signup(env, request, body, origin) {
   const fullName = cleanName(body.fullName, 'Your name');
   const email = normalEmail(body.email);
 
+  const { hash, salt, iters } = await hashPassword(body.password);
   const existing = await env.DB.prepare('SELECT id, email, email_verified_at FROM users WHERE email = ?').bind(email).first();
   if (existing) {
     // Same answer as a new account, so sign-up cannot be used to probe who has joined.
-    if (!existing.email_verified_at) await sendVerify(env, origin, existing);
+    if (!existing.email_verified_at) {
+      // Nobody has proved they own this email yet, so the latest sign-up's details replace any earlier ones.
+      await env.DB.prepare('UPDATE users SET full_name = ?, password_hash = ?, password_salt = ?, password_iters = ? WHERE id = ? AND email_verified_at IS NULL').bind(fullName, hash, salt, iters, existing.id).run();
+      await sendVerify(env, origin, existing);
+    }
     return json({ ok: true });
   }
-  const { hash, salt, iters } = await hashPassword(body.password);
   const id = crypto.randomUUID();
   await env.DB.prepare('INSERT INTO users (id, email, full_name, password_hash, password_salt, password_iters) VALUES (?, ?, ?, ?, ?, ?)').bind(id, email, fullName, hash, salt, iters).run();
   await sendVerify(env, origin, { id, email });
@@ -195,6 +199,18 @@ async function login(env, request, body, origin) {
 }
 
 async function verify(env, request, body) {
+  await limit(env, request, 'verify');
+  // The link alone is not enough: someone else could have signed up with this email and kept the password.
+  // Asking for the password means whoever activates the account knows it.
+  if (typeof body.token !== 'string' || !body.token) throw new HttpError(400, 'That link is not valid.');
+  const pending = await env.DB.prepare(
+    `SELECT u.password_hash, u.password_salt, u.password_iters FROM email_tokens t JOIN users u ON u.id = t.user_id
+     WHERE t.token_hash = ? AND t.purpose = 'verify' AND t.expires_at > ?`,
+  ).bind(await sha256(body.token), now()).first();
+  if (!pending) throw new HttpError(400, 'That link has expired. Signing in sends a new one.');
+  if (typeof body.password !== 'string' || !(await passwordMatches(body.password, pending))) {
+    throw new HttpError(400, 'That is not the password this account was created with. If you did not choose it, reset your password instead.');
+  }
   const userId = await consumeToken(env, body.token, 'verify');
   await env.DB.prepare('UPDATE users SET email_verified_at = ? WHERE id = ? AND email_verified_at IS NULL').bind(now(), userId).run();
   return json({ ok: true }, 200, { 'set-cookie': await startSession(env, request, userId) });

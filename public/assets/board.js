@@ -15,6 +15,7 @@ const S = {
   drawerFor: null,
   fresh: null, // card to flash after it lands
   renderWaiting: false,
+  drawerWaiting: false,
 };
 
 // ---------- Reading the data ----------
@@ -223,7 +224,22 @@ function renderSoon() {
   S.renderWaiting = false;
   renderAll();
 }
-document.addEventListener('focusout', () => setTimeout(() => S.renderWaiting && renderSoon(), 150));
+
+/** The same for the side panel: redrawing it would throw away a note someone is still typing. */
+function renderDrawerSoon() {
+  const a = document.activeElement;
+  if (a && a.closest('#drawer') && a.matches('textarea, select')) {
+    S.drawerWaiting = true;
+    return;
+  }
+  S.drawerWaiting = false;
+  if (S.drawerFor && $('drawer').open) renderDrawer();
+}
+
+document.addEventListener('focusout', () => setTimeout(() => {
+  if (S.renderWaiting) renderSoon();
+  if (S.drawerWaiting) renderDrawerSoon();
+}, 150));
 
 // ---------- Syncing with the server ----------
 
@@ -237,8 +253,13 @@ async function refresh() {
   if (seq !== refreshSeq || inFlight) return;
   S.data = data;
   renderSoon();
-  if (S.drawerFor && $('drawer').open) renderDrawer();
+  renderDrawerSoon();
 }
+
+/** A failed refresh must not break the save queue, or the next save would be skipped. The poll catches up later. */
+const refreshAfterSave = () => refresh().catch(() => {
+  $('sync').textContent = 'Having trouble reaching the server. Retrying…';
+});
 
 let queue = Promise.resolve();
 
@@ -249,12 +270,12 @@ function mutate(call) {
   queue = queue.then(call).then(
     () => {
       inFlight--;
-      return inFlight ? null : refresh();
+      return inFlight ? null : refreshAfterSave();
     },
     async (err) => {
       inFlight--;
       toast(err.message);
-      await refresh();
+      await refreshAfterSave();
     },
   );
   return queue;

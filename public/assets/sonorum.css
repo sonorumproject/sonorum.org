@@ -137,6 +137,9 @@ select.input { padding-right: 4px; }
 .track input:focus-visible + span { outline: 1px dotted var(--black); outline-offset: 2px; }
 
 .form-narrow { max-width: 36ch; }
+.consent { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.consent input { flex: none; width: 16px; height: 16px; margin: 4px 0 0; accent-color: var(--primary); cursor: pointer; }
+.consent input:focus-visible { outline: 1px dotted var(--black); outline-offset: 2px; }
 .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .notice { border-left: 2px solid var(--primary); padding: 0 0 0 12px; max-width: 58ch; }
 .q-section { padding: 28px 0 4px; border-top: 1px solid var(--line); }

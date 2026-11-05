@@ -14,8 +14,7 @@
     {
       "binding": "DB",
       "database_name": "sonorum",
-      // Replace with the id printed by `npx wrangler d1 create sonorum`.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "fc6efdd2-2756-4787-a8c0-3549bc0662e9",
       "migrations_dir": "./migrations"
     }
   ],

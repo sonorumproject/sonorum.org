@@ -1,5 +1,5 @@
 import { api, h, setYear, formatDate } from '/assets/ui.js';
-import { DAYS, LEVELS, SECTIONS, TIMES, TRACKS, validateAnswers } from '/assets/questions.js';
+import { CONSENT_TEXT, DAYS, LEVELS, SECTIONS, TIMES, TRACKS, validateAnswers } from '/assets/questions.js';
 setYear();
 
 const $ = (id) => document.getElementById(id);
@@ -207,6 +207,27 @@ window.addEventListener('beforeunload', (e) => {
 
 // ---------- Start ----------
 
+function askForConsent() {
+  document.querySelector('[data-consent-text]').textContent = CONSENT_TEXT;
+  $('consent').hidden = false;
+  $('consent').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = $('consent').querySelector('button');
+    $('consent-error').hidden = true;
+    button.disabled = true;
+    try {
+      await api('/me/consent', { method: 'POST', body: { consent: $('consent-box').checked } });
+      $('consent').hidden = true;
+      await start();
+    } catch (err) {
+      $('consent-error').textContent = err.message;
+      $('consent-error').hidden = false;
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
 function askToVerify(token) {
   $('hello').textContent = 'Confirm your email';
   $('signout').hidden = true;
@@ -243,6 +264,7 @@ async function start() {
   $('hello').textContent = `Hello, ${me.user.name}`;
   $('who').textContent = me.user.email;
   $('board-link').hidden = !me.user.isBoard;
+  if (!me.user.hasConsent) return askForConsent();
   if (me.profile) {
     state.tracks = new Set(me.profile.tracks);
     state.answers = me.profile.answers;

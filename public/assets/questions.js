@@ -6,6 +6,11 @@ export const TRACKS = {
   create: { name: 'sonorumCreate', blurb: 'Write, produce, and release songs with other people.' },
 };
 
+// Shown wherever someone agrees to us storing their information.
+// If the meaning changes, change CONSENT_VERSION too, so the database shows who agreed to which wording.
+export const CONSENT_VERSION = '2026-11-05';
+export const CONSENT_TEXT = 'I agree that Sonorum can store my name, email, and answers to sort members into groups. The Board and the people who run the site’s hosting can see this information. Once groups are released, my group can see my name, email, and what I play or do. To have my information deleted, I can email hello@sonorum.org.';
+
 export const LEVELS = [
   { value: 'learning', label: 'Learning' },
   { value: 'comfortable', label: 'Comfortable' },

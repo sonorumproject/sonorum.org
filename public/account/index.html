@@ -39,6 +39,13 @@
         </div>
     </form>
 
+    <form id="consent" class="form-narrow" hidden>
+        <p>Before you answer the questions, we need your agreement.</p>
+        <label class="field consent"><input id="consent-box" type="checkbox" required><span data-consent-text></span></label>
+        <p class="error" id="consent-error" role="alert" hidden></p>
+        <div class="form-actions"><button class="btn primary">Continue</button></div>
+    </form>
+
     <section class="section" id="status" hidden aria-labelledby="status-heading">
         <h2 id="status-heading">Your groups</h2>
         <div id="status-body"></div>

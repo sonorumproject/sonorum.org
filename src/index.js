@@ -1,9 +1,10 @@
-import { COVERAGE, TRACKS, findOption, validateAnswers } from '../public/assets/questions.js';
+import { CONSENT_VERSION, COVERAGE, TRACKS, findOption, validateAnswers } from '../public/assets/questions.js';
 
 const SESSION_COOKIE = 'sonorum_session';
 const SESSION_DAYS = 30;
 const PBKDF2_ITERS = 100000; // the most Workers' WebCrypto allows
 const TOKEN_HOURS = { verify: 48, reset: 2 };
+const CONSENT_NEEDED = 'Please tick the box to agree before continuing.';
 
 class HttpError extends Error {
   constructor(status, message, extra) {
@@ -139,7 +140,7 @@ async function currentUser(env, request) {
   const token = readCookie(request);
   if (!token) return null;
   return env.DB.prepare(
-    `SELECT u.id, u.email, u.full_name, b.email IS NOT NULL AS is_board
+    `SELECT u.id, u.email, u.full_name, u.consent_at, b.email IS NOT NULL AS is_board
      FROM sessions s JOIN users u ON u.id = s.user_id
      LEFT JOIN board_members b ON b.email = u.email
      WHERE s.token_hash = ? AND s.expires_at > ? AND u.email_verified_at IS NOT NULL`,
@@ -166,7 +167,9 @@ async function signup(env, request, body, origin) {
   if (!validEmail(body.email)) throw new HttpError(400, 'Enter a valid email address.');
   checkPassword(body.password);
   const fullName = cleanName(body.fullName, 'Your name');
+  if (body.consent !== true) throw new HttpError(400, CONSENT_NEEDED);
   const email = normalEmail(body.email);
+  const consentAt = now();
 
   const { hash, salt, iters } = await hashPassword(body.password);
   const existing = await env.DB.prepare('SELECT id, email, email_verified_at FROM users WHERE email = ?').bind(email).first();
@@ -174,13 +177,13 @@ async function signup(env, request, body, origin) {
     // Same answer as a new account, so sign-up cannot be used to probe who has joined.
     if (!existing.email_verified_at) {
       // Nobody has proved they own this email yet, so the latest sign-up's details replace any earlier ones.
-      await env.DB.prepare('UPDATE users SET full_name = ?, password_hash = ?, password_salt = ?, password_iters = ? WHERE id = ? AND email_verified_at IS NULL').bind(fullName, hash, salt, iters, existing.id).run();
+      await env.DB.prepare('UPDATE users SET full_name = ?, password_hash = ?, password_salt = ?, password_iters = ?, consent_at = ?, consent_version = ? WHERE id = ? AND email_verified_at IS NULL').bind(fullName, hash, salt, iters, consentAt, CONSENT_VERSION, existing.id).run();
       await sendVerify(env, origin, existing);
     }
     return json({ ok: true });
   }
   const id = crypto.randomUUID();
-  await env.DB.prepare('INSERT INTO users (id, email, full_name, password_hash, password_salt, password_iters) VALUES (?, ?, ?, ?, ?, ?)').bind(id, email, fullName, hash, salt, iters).run();
+  await env.DB.prepare('INSERT INTO users (id, email, full_name, password_hash, password_salt, password_iters, consent_at, consent_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(id, email, fullName, hash, salt, iters, consentAt, CONSENT_VERSION).run();
   await sendVerify(env, origin, { id, email });
   return json({ ok: true });
 }
@@ -264,14 +267,23 @@ async function getMe(env, request) {
     }
   }
   return json({
-    user: { id: user.id, email: user.email, name: user.full_name, isBoard: !!user.is_board },
+    user: { id: user.id, email: user.email, name: user.full_name, isBoard: !!user.is_board, hasConsent: !!user.consent_at },
     profile: profile ? { tracks: profileTracks(profile), answers: JSON.parse(profile.answers), submittedAt: profile.submitted_at, updatedAt: profile.updated_at } : null,
     release: { published: pubs.map((p) => p.track), groups },
   });
 }
 
+/** For accounts made before the consent box existed. */
+async function saveConsent(env, request, body) {
+  const user = await requireUser(env, request);
+  if (body.consent !== true) throw new HttpError(400, CONSENT_NEEDED);
+  await env.DB.prepare('UPDATE users SET consent_at = ?, consent_version = ? WHERE id = ? AND consent_at IS NULL').bind(now(), CONSENT_VERSION, user.id).run();
+  return json({ ok: true });
+}
+
 async function saveProfile(env, request, body) {
   const user = await requireUser(env, request);
+  if (!user.consent_at) throw new HttpError(403, CONSENT_NEEDED);
   const tracks = (Array.isArray(body.tracks) ? body.tracks : []).filter((t) => t in TRACKS);
   const { clean, missing } = validateAnswers(body.answers, tracks);
   const submitting = !!body.submit;
@@ -511,6 +523,8 @@ async function handleApi(request, env) {
       return logout(env, request);
     case 'GET /api/me':
       return getMe(env, request);
+    case 'POST /api/me/consent':
+      return saveConsent(env, request, body);
     case 'PUT /api/me/profile':
       return saveProfile(env, request, body);
   }

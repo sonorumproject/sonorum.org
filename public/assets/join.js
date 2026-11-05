@@ -1,5 +1,7 @@
 import { api, setYear } from '/assets/ui.js';
+import { CONSENT_TEXT } from '/assets/questions.js';
 setYear();
+document.querySelector('[data-consent-text]').textContent = CONSENT_TEXT;
 
 const views = [...document.querySelectorAll('[data-view]')];
 const show = (name) => views.forEach((v) => (v.hidden = v.dataset.view !== name));
@@ -48,7 +50,7 @@ function wire(id, handler) {
 }
 
 wire('signup', async (f) => {
-  await api('/auth/signup', { method: 'POST', body: { fullName: f.fullName, email: f.email, password: f.password, turnstileToken: f['cf-turnstile-response'] } });
+  await api('/auth/signup', { method: 'POST', body: { fullName: f.fullName, email: f.email, password: f.password, consent: f.consent === 'on', turnstileToken: f['cf-turnstile-response'] } });
   sent(`We sent a link to ${f.email}. Open it to finish creating your account. If it does not arrive, check your spam folder.`);
 });
 wire('signin', async (f) => {

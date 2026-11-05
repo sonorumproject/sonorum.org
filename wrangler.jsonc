@@ -25,7 +25,7 @@
   ],
   "vars": {
     "MAIL_FROM": "hello@sonorum.org",
-    "TURNSTILE_SITE_KEY": ""
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAF1cww37B6x-rpsP"
   },
   "observability": { "enabled": true }
 }

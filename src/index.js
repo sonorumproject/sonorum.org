@@ -82,7 +82,12 @@ async function sendEmail(env, to, subject, text, html) {
     console.log(`[dev email] to=${to} subject="${subject}"\n${text}`);
     return;
   }
-  await env.EMAIL.send({ to, from: { email: env.MAIL_FROM, name: 'Sonorum Project' }, subject, text, html });
+  try {
+    await env.EMAIL.send({ to, from: { email: env.MAIL_FROM, name: 'Sonorum Project' }, subject, text, html });
+  } catch (err) {
+    console.error('Email failed to send:', err.code || '', err.message);
+    throw new HttpError(503, 'We could not send the email right now. Please try again later.');
+  }
 }
 
 async function issueToken(env, userId, purpose) {

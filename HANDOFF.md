@@ -175,4 +175,3 @@ Do this only after step 7 works, because the pages moved from the repo root to `
 - **Deleting a person is manual.** There is no delete button. Remove them from D1, then republish their track, because published snapshots keep a copy of their name and email.
 - **No automated tests.** Earlier checks weren't saved in the repo, so use the lists above.
 - **Expired sessions and email tokens are never cleaned up.** A scheduled job could do this if the tables grow.
-- **Project credit and ownership** have not been agreed. Edward built this, so settle that with him directly.

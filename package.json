@@ -7,7 +7,8 @@
     "db:migrate:local": "wrangler d1 migrations apply sonorum --local",
     "db:seed:local": "node scripts/seed-dev.mjs",
     "db:migrate:remote": "wrangler d1 migrations apply sonorum --remote",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "check": "node scripts/check-questions.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.158.0"

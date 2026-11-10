@@ -23,8 +23,10 @@ export const TIMES = [
   { value: 'eve', label: 'Evening' },
 ];
 
-const list = (...labels) => labels.map((label) => ({ value: label.toLowerCase().replace(/[^a-z0-9]+/g, '_'), label }));
+const slug = (label) => label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+const list = (...labels) => labels.map((label) => ({ value: slug(label), label }));
 
+// The starting questionnaire. Once the board saves edits, the copy in the database replaces it.
 export const SECTIONS = [
   {
     id: 'about',
@@ -75,15 +77,11 @@ export const slotLabel = (slot) => {
   return `${day[0].toUpperCase()}${day.slice(1)} ${TIMES.find((t) => t.value === time)?.label.toLowerCase() ?? ''}`;
 };
 
-export const sectionsFor = (tracks) => SECTIONS.filter((s) => !s.track || tracks.includes(s.track));
+export const sectionsFor = (sections, tracks) => sections.filter((s) => !s.track || tracks.includes(s.track));
 
-export const findOption = (questionId, value) => {
-  for (const section of SECTIONS) {
-    const q = section.questions.find((x) => x.id === questionId);
-    if (q) return q.options?.find((o) => o.value === value)?.label ?? value;
-  }
-  return value;
-};
+export const findQuestion = (sections, id) => sections.flatMap((s) => s.questions).find((q) => q.id === id);
+
+export const findOption = (sections, questionId, value) => findQuestion(sections, questionId)?.options?.find((o) => o.value === value)?.label ?? value;
 
 // What a track's group needs covered, and which answer holds it.
 export const COVERAGE = {
@@ -92,10 +90,10 @@ export const COVERAGE = {
 };
 
 /** Checks answers against the questions. Returns { clean, missing }, keeping only known answers. */
-export function validateAnswers(answers, tracks) {
+export function validateAnswers(sections, answers, tracks) {
   const clean = {};
   const missing = [];
-  for (const section of sectionsFor(tracks)) {
+  for (const section of sectionsFor(sections, tracks)) {
     for (const q of section.questions) {
       const raw = answers?.[q.id];
       let value;
@@ -119,4 +117,75 @@ export function validateAnswers(answers, tracks) {
     }
   }
   return { clean, missing };
+}
+
+// ---------- Board edits ----------
+
+// The board panel and publishing read these by id, so the board can reword them but not remove them or change their type.
+export const LOCKED = new Set(['year', 'availability', 'genres', 'parts', 'roles', 'band_with', 'create_with']);
+export const TYPE_NAMES = { single: 'Pick one', multi: 'Pick any', text: 'Short answer', textarea: 'Long answer', levels: 'Skill levels', slots: 'Weekly times' };
+export const NEW_TYPES = ['single', 'multi', 'text', 'textarea'];
+export const hasOptions = (type) => type === 'single' || type === 'multi' || type === 'levels';
+
+export class QuestionError extends Error {}
+
+const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+
+/** Option values are stored in answers, so an option keeps its value as long as its wording does. */
+function cleanOptions(raw, prev, title) {
+  const labels = [];
+  for (const item of Array.isArray(raw) ? raw : []) {
+    const label = str(typeof item === 'string' ? item : item?.label, 80);
+    if (label && !labels.some((l) => l.toLowerCase() === label.toLowerCase())) labels.push(label);
+  }
+  if (!labels.length) throw new QuestionError(`"${title}" needs at least one option.`);
+  if (labels.length > 30) throw new QuestionError(`"${title}" has too many options. The limit is 30.`);
+  const out = labels.map((label) => ({ value: prev.find((o) => o.label.toLowerCase() === label.toLowerCase())?.value, label }));
+  const taken = new Set(out.map((o) => o.value).filter(Boolean));
+  for (const o of out) {
+    if (o.value) continue;
+    let value = slug(o.label) || 'option';
+    while (taken.has(value)) value += '_';
+    taken.add(value);
+    o.value = value;
+  }
+  return out;
+}
+
+/** Checks a board edit of the questions against the current set. Throws QuestionError with a message for the board. */
+export function cleanSections(input, current) {
+  const home = new Map(current.flatMap((s) => s.questions.map((q) => [q.id, { q, section: s.id }])));
+  const seen = new Set();
+  const out = current.map((section) => {
+    const given = Array.isArray(input) ? input.find((s) => s?.id === section.id)?.questions : null;
+    if (!Array.isArray(given)) throw new QuestionError(`The ${section.title} section is missing.`);
+    if (given.length > 40) throw new QuestionError(`${section.title} has too many questions. The limit is 40.`);
+    return {
+      ...section,
+      questions: given.map((raw) => {
+        const found = home.get(raw?.id);
+        if (found && (found.section !== section.id || seen.has(raw.id))) throw new QuestionError('Questions cannot move between sections.');
+        const prev = found?.q;
+        const type = prev ? prev.type : raw?.type;
+        if (!prev && !NEW_TYPES.includes(type)) throw new QuestionError('Pick an answer type for each new question.');
+        const label = str(raw?.label, 200);
+        if (!label) throw new QuestionError('Every question needs wording.');
+        const id = prev ? prev.id : `q_${crypto.randomUUID().slice(0, 8)}`;
+        seen.add(id);
+        const q = { id, label, type };
+        const help = str(raw.help, 300);
+        if (help) q.help = help;
+        if (prev?.placeholder) q.placeholder = prev.placeholder;
+        if (raw.required === true) q.required = true;
+        // Sorting questions are shown to groups or used to place people, so they cannot be private.
+        if (raw.boardOnly === true && !LOCKED.has(id)) q.boardOnly = true;
+        if (hasOptions(type)) q.options = cleanOptions(raw.options, prev?.options || [], label);
+        return q;
+      }),
+    };
+  });
+  for (const id of LOCKED) {
+    if (home.has(id) && !seen.has(id)) throw new QuestionError(`"${home.get(id).q.label}" is used for sorting and cannot be removed.`);
+  }
+  return out;
 }

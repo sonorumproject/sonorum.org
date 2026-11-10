@@ -1,5 +1,5 @@
 import { api, h, formatDate, formatTime } from '/assets/ui.js';
-import { COVERAGE, DAYS, LEVELS, SECTIONS, TRACKS, findOption, slotLabel } from '/assets/questions.js';
+import { COVERAGE, DAYS, LEVELS, LOCKED, NEW_TYPES, TRACKS, TYPE_NAMES, findOption, findQuestion, hasOptions, sectionsFor, slotLabel } from '/assets/questions.js';
 
 const $ = (id) => document.getElementById(id);
 const POLL_MS = 5000;
@@ -28,13 +28,16 @@ const unplaced = (track = S.track) => trackMembers(track).filter((m) => !groupsO
 
 const coverQuestion = () => COVERAGE[S.track].question;
 const held = (m) => m.answers[coverQuestion()] || {};
-const label = (qid, v) => findOption(qid, v);
+const sections = () => S.data.questions.sections;
+const label = (qid, v) => findOption(sections(), qid, v);
+const coverOptions = () => findQuestion(sections(), coverQuestion()).options;
 
 const initials = { junior: 'Jr', lower: 'Lo', upper: 'Up', senior: 'Sr', post_grad: 'PG' };
 
 function coverage(group) {
   const people = group.memberIds.map(memberById).filter(Boolean);
-  const { core } = COVERAGE[S.track];
+  // A core part the board has removed from the options can never be filled, so it is not asked for.
+  const core = COVERAGE[S.track].core.filter((c) => coverOptions().some((o) => o.value === c));
   const has = new Set(people.flatMap((m) => Object.keys(held(m))));
   const shared = (key) => {
     if (!people.length) return [];
@@ -142,9 +145,8 @@ function renderRelease() {
 }
 
 function renderFilters() {
-  const q = SECTIONS.flatMap((s) => s.questions).find((x) => x.id === coverQuestion());
   const part = $('f-part');
-  part.replaceChildren(h('option', { value: '' }, S.track === 'bands' ? 'Any part' : 'Any role'), ...q.options.map((o) => h('option', { value: o.value }, o.label)));
+  part.replaceChildren(h('option', { value: '' }, S.track === 'bands' ? 'Any part' : 'Any role'), ...coverOptions().map((o) => h('option', { value: o.value }, o.label)));
   part.value = S.part;
   const day = $('f-day');
   if (!day.options.length) day.replaceChildren(h('option', { value: '' }, 'Any day'), ...DAYS.map((d) => h('option', { value: d.toLowerCase() }, d)));
@@ -435,7 +437,7 @@ function renderDrawer() {
   const ranked = m.archived ? [] : open.map((g) => fit(m, g)).sort((a, b) => b.score - a.score);
   const select = h('select', { class: 'input', 'aria-label': 'Choose a group' }, ranked.map((r) => h('option', { value: r.group.id }, r.group.name)));
 
-  const sections = SECTIONS.filter((s) => !s.track || m.tracks.includes(s.track)).map((s) => {
+  const answered = sectionsFor(sections(), m.tracks).map((s) => {
     const rows = s.questions.filter((q) => m.answers[q.id] !== undefined).map((q) =>
       h('div', { class: `answer${q.boardOnly ? ' private' : ''}` }, h('dt', {}, q.label), h('dd', {}, answerText(q, m.answers[q.id]))));
     return rows.length ? [h('h3', {}, s.title), h('dl', { style: 'margin:0' }, rows)] : null;
@@ -468,7 +470,7 @@ function renderDrawer() {
         ],
     h('h3', {}, 'Board note'),
     note,
-    sections,
+    answered,
     m.archived ? null : h('p', { style: 'margin-top:24px' }, h('button', { class: 'link-btn muted', type: 'button', onclick: () => confirmArchive(m) }, 'Remove from sorting'))].flat(Infinity).filter(Boolean));
   drawer.append(toastEl); // redrawing clears the panel, and the toast must stay reachable above it
 }
@@ -603,6 +605,65 @@ function accessDialog() {
   draw();
 }
 
+function questionsDialog() {
+  const base = S.data.questions;
+  const draft = structuredClone(base.sections);
+  for (const q of draft.flatMap((s) => s.questions)) q.optionsText = (q.options || []).map((o) => o.label).join('\n');
+  const err = h('p', { class: 'error', role: 'alert', hidden: true });
+  const check = (text, value, set) => h('label', {}, h('input', { type: 'checkbox', checked: !!value, onchange: (e) => set(e.target.checked) }), ` ${text}`);
+
+  const row = (s, q, i) => h('fieldset', { class: 'q-edit' },
+    h('legend', {}, q.id ? TYPE_NAMES[q.type] : 'New question', LOCKED.has(q.id) ? h('span', { class: 'muted' }, ' · used for sorting') : null),
+    h('input', { class: 'input', value: q.label, maxLength: 200, placeholder: 'Question', 'aria-label': 'Question', oninput: (e) => (q.label = e.target.value) }),
+    h('input', { class: 'input', value: q.help || '', maxLength: 300, placeholder: 'Help text (optional)', 'aria-label': 'Help text', oninput: (e) => (q.help = e.target.value) }),
+    q.id ? null : h('select', { class: 'input', 'aria-label': 'Answer type', onchange: (e) => { q.type = e.target.value; draw(); } },
+      NEW_TYPES.map((t) => h('option', { value: t, selected: q.type === t }, TYPE_NAMES[t]))),
+    hasOptions(q.type) ? h('textarea', { class: 'input', value: q.optionsText, rows: Math.min(8, Math.max(3, q.optionsText.split('\n').length)), placeholder: 'One option per line', 'aria-label': 'Options, one per line', oninput: (e) => (q.optionsText = e.target.value) }) : null,
+    h('div', { class: 'q-edit-row' },
+      check('Required', q.required, (v) => (q.required = v)),
+      LOCKED.has(q.id) ? null : check('Only the board sees answers', q.boardOnly, (v) => (q.boardOnly = v)),
+      h('span', { style: 'flex:1' }),
+      i > 0 ? h('button', { class: 'link-btn', type: 'button', onclick: () => { s.questions.splice(i - 1, 0, ...s.questions.splice(i, 1)); draw(); } }, 'Move up') : null,
+      LOCKED.has(q.id) ? null : h('button', { class: 'link-btn', type: 'button', onclick: () => { s.questions.splice(i, 1); draw(); } }, 'Remove')));
+
+  const save = async (button) => {
+    err.hidden = true;
+    button.disabled = true;
+    const body = draft.map((s) => ({ id: s.id, questions: s.questions.map((q) => ({ id: q.id, type: q.type, label: q.label, help: q.help, required: q.required, boardOnly: q.boardOnly, options: q.optionsText.split('\n') })) }));
+    try {
+      await queue;
+      await api('/board/questions', { method: 'PUT', body: { sections: body, updatedAt: base.updatedAt } });
+      await refreshAfterSave();
+      $('modal').close();
+      toast('Questions saved. The form shows them from now on.');
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.hidden = false;
+      button.disabled = false;
+    }
+  };
+
+  const draw = () => {
+    const top = $('modal').scrollTop;
+    dialog([
+      h('h2', {}, 'Questions'),
+      h('p', {}, 'Changes reach the sign-up form as soon as you save. Questions used for sorting can be reworded but not removed. Rewording an option counts as a new option, so anyone who picked the old one has to pick again.'),
+      base.updatedBy ? h('p', { class: 'muted' }, `Last saved ${formatDate(base.updatedAt)} by ${base.updatedBy}.`) : null,
+      ...draft.map((s) => [
+        h('h3', {}, s.title),
+        s.questions.map((q, i) => row(s, q, i)),
+        h('button', { class: 'btn', type: 'button', style: 'margin:8px 0 24px', onclick: () => { s.questions.push({ type: 'single', label: '', optionsText: '' }); draw(); } }, `Add a question to ${s.title}`),
+      ]).flat(Infinity),
+      err,
+      h('div', { class: 'modal-actions' },
+        h('button', { class: 'btn', type: 'button', onclick: () => $('modal').close() }, 'Cancel'),
+        h('button', { class: 'btn primary', type: 'button', onclick: (e) => save(e.currentTarget) }, 'Save questions')),
+    ]);
+    $('modal').scrollTop = top;
+  };
+  draw();
+}
+
 $('modal').addEventListener('click', (e) => {
   if (e.target === $('modal')) $('modal').close();
 });
@@ -628,6 +689,7 @@ function toast(text, action) {
 
 $('new-group').addEventListener('click', newGroupDialog);
 $('access').addEventListener('click', accessDialog);
+$('questions').addEventListener('click', questionsDialog);
 $('search').addEventListener('input', (e) => {
   S.query = e.target.value.trim();
   renderPool();

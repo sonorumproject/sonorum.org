@@ -1,9 +1,9 @@
 import { api, h, setYear, formatDate } from '/assets/ui.js';
-import { CONSENT_TEXT, DAYS, LEVELS, SECTIONS, TIMES, TRACKS, validateAnswers } from '/assets/questions.js';
+import { CONSENT_TEXT, DAYS, LEVELS, TIMES, TRACKS, sectionsFor, validateAnswers } from '/assets/questions.js';
 setYear();
 
 const $ = (id) => document.getElementById(id);
-const state = { tracks: new Set(), answers: {}, submittedAt: null, dirty: false };
+const state = { sections: [], tracks: new Set(), answers: {}, submittedAt: null, dirty: false };
 let saveTimer = null;
 
 // ---------- Rendering questions ----------
@@ -78,7 +78,7 @@ function renderField(q) {
 }
 
 function renderSections() {
-  const open = SECTIONS.filter((s) => !s.track || state.tracks.has(s.track));
+  const open = sectionsFor(state.sections, [...state.tracks]);
   $('sections').replaceChildren(...open.map((s) => h('div', { class: 'q-section', id: `s-${s.id}` }, h('h2', {}, s.title), s.questions.map(renderField))));
 }
 
@@ -173,7 +173,7 @@ $('profile').addEventListener('submit', async (e) => {
     showFormError('Choose sonorumBands, sonorumCreate, or both.');
     return markInvalid(['tracks']);
   }
-  const { missing } = validateAnswers(state.answers, tracks);
+  const { missing } = validateAnswers(state.sections, state.answers, tracks);
   if (missing.length) {
     showFormError(`${missing.length === 1 ? 'One required question is' : `${missing.length} required questions are`} still empty.`);
     return markInvalid(missing);
@@ -265,6 +265,7 @@ async function start() {
   $('who').textContent = me.user.email;
   $('board-link').hidden = !me.user.isBoard;
   if (!me.user.hasConsent) return askForConsent();
+  state.sections = me.sections;
   if (me.profile) {
     state.tracks = new Set(me.profile.tracks);
     state.answers = me.profile.answers;

@@ -14,18 +14,21 @@
     {
       "binding": "DB",
       "database_name": "sonorum",
-      "database_id": "fc6efdd2-2756-4787-a8c0-3549bc0662e9",
+      "database_id": "95c4c413-93a4-4ac3-8d4e-2e71315ef635",
       "migrations_dir": "./migrations"
     }
   ],
-  "send_email": [{ "name": "EMAIL" }],
   "ratelimits": [
     // Applied per IP to sign-in, sign-up and reset requests.
     { "name": "AUTH_LIMIT", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }
   ],
   "vars": {
     "MAIL_FROM": "hello@sonorum.org",
-    "TURNSTILE_SITE_KEY": "0x4AAAAAAF1cww37B6x-rpsP"
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAF61HDUTGq2TndwI"
   },
+  "routes": [
+    { "pattern": "sonorum.org", "custom_domain": true },
+    { "pattern": "www.sonorum.org", "custom_domain": true }
+  ],
   "observability": { "enabled": true }
 }

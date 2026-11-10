@@ -8,7 +8,7 @@ The Sonorum Project website, plus member sign-up and the Board's group-sorting p
 | `/account` | Members | Answer the questions, see your group once it is released |
 | `/board` | Board | Sort people into groups, then publish |
 
-To change the questions, edit `public/assets/questions.js`. The form, the board panel, and server validation all read from it.
+The Board edits the questions from **Questions** on `/board`. Edits are saved in D1 and reach the form right away. `public/assets/questions.js` holds the starting set, the rules for edits, and the questions sorting depends on (`LOCKED`), which can be reworded but not removed. Run `npm run check` after changing that file.
 
 ## How publishing works
 
@@ -52,11 +52,13 @@ The seed replaces local data with made-up members and two board accounts (`board
    npm run db:migrate:remote
    ```
 
-3. Turn on email sending for the domain:
+3. Email goes through [Resend](https://resend.com). Add `sonorum.org` as a domain there, add the DNS records it lists, then store an API key with sending access:
 
    ```bash
-   npx wrangler email sending enable sonorum.org
+   npx wrangler secret put RESEND_API_KEY
    ```
+
+   The free plan sends up to 100 emails a day. Past that, sign-up and reset show "We could not send the email right now".
 
 4. Optional but recommended: create a Turnstile widget, put its site key in `TURNSTILE_SITE_KEY` in `wrangler.jsonc`, and store its secret:
 

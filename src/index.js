@@ -1,4 +1,4 @@
-import { CONSENT_VERSION, COVERAGE, TRACKS, findOption, validateAnswers } from '../public/assets/questions.js';
+import { CONSENT_VERSION, COVERAGE, QuestionError, SECTIONS, TRACKS, cleanSections, findOption, validateAnswers } from '../public/assets/questions.js';
 
 const SESSION_COOKIE = 'sonorum_session';
 const SESSION_DAYS = 30;
@@ -82,10 +82,14 @@ async function sendEmail(env, to, subject, text, html) {
     console.log(`[dev email] to=${to} subject="${subject}"\n${text}`);
     return;
   }
-  try {
-    await env.EMAIL.send({ to, from: { email: env.MAIL_FROM, name: 'Sonorum Project' }, subject, text, html });
-  } catch (err) {
-    console.error('Email failed to send:', err.code || '', err.message);
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ from: `Sonorum Project <${env.MAIL_FROM}>`, to: [to], subject, text, html }),
+  }).catch((err) => ({ ok: false, status: 0, text: async () => err.message }));
+  if (!res.ok) {
+    // 429 here usually means the free plan's daily sending cap was reached.
+    console.error('Email failed to send:', res.status, await res.text());
     throw new HttpError(503, 'We could not send the email right now. Please try again later.');
   }
 }
@@ -252,6 +256,38 @@ async function logout(env, request) {
   return json({ ok: true }, 200, { 'set-cookie': sessionCookie(request, '', 0) });
 }
 
+// ---------- Questions ----------
+
+async function loadQuestions(env) {
+  const row = await env.DB.prepare('SELECT sections, updated_by, updated_at FROM question_set WHERE id = 1').first();
+  return row ? { sections: JSON.parse(row.sections), updatedBy: row.updated_by, updatedAt: row.updated_at } : { sections: SECTIONS, updatedBy: null, updatedAt: null };
+}
+
+async function saveQuestions(env, user, body) {
+  const current = await loadQuestions(env);
+  const conflict = new HttpError(409, 'Someone else changed the questions while you were editing. Close this and open it again to see their version.');
+  if ((body.updatedAt ?? null) !== current.updatedAt) throw conflict;
+  let sections;
+  try {
+    sections = cleanSections(body.sections, current.sections);
+  } catch (err) {
+    if (err instanceof QuestionError) throw new HttpError(400, err.message);
+    throw err;
+  }
+  const encoded = JSON.stringify(sections);
+  if (encoded.length > 65536) throw new HttpError(400, 'The questions are too long in total.');
+  const [write] = await env.DB.batch([
+    // The WHERE makes the version check and the write one step, so two board members cannot overwrite each other.
+    env.DB.prepare(
+      `INSERT INTO question_set (id, sections, updated_by, updated_at) VALUES (1, ?1, ?2, ?3)
+       ON CONFLICT(id) DO UPDATE SET sections = ?1, updated_by = ?2, updated_at = ?3 WHERE question_set.updated_at IS ?4`,
+    ).bind(encoded, user.email, now(), current.updatedAt),
+    bump(env, user.email),
+  ]);
+  if (!write.meta.changes) throw conflict;
+  return json({ ok: true });
+}
+
 // ---------- Member routes ----------
 
 const profileTracks = (p) => [p?.in_bands ? 'bands' : null, p?.in_create ? 'create' : null].filter(Boolean);
@@ -260,6 +296,7 @@ async function getMe(env, request) {
   const user = await currentUser(env, request);
   if (!user) return json({ user: null });
   const profile = await env.DB.prepare('SELECT * FROM member_profiles WHERE user_id = ?').bind(user.id).first();
+  const { sections } = await loadQuestions(env);
   const { results: pubs } = await env.DB.prepare('SELECT track, published_at, snapshot FROM publications').all();
 
   // Members only ever get their own groups out of the frozen copy.
@@ -275,6 +312,7 @@ async function getMe(env, request) {
     user: { id: user.id, email: user.email, name: user.full_name, isBoard: !!user.is_board, hasConsent: !!user.consent_at },
     profile: profile ? { tracks: profileTracks(profile), answers: JSON.parse(profile.answers), submittedAt: profile.submitted_at, updatedAt: profile.updated_at } : null,
     release: { published: pubs.map((p) => p.track), groups },
+    sections,
   });
 }
 
@@ -290,7 +328,7 @@ async function saveProfile(env, request, body) {
   const user = await requireUser(env, request);
   if (!user.consent_at) throw new HttpError(403, CONSENT_NEEDED);
   const tracks = (Array.isArray(body.tracks) ? body.tracks : []).filter((t) => t in TRACKS);
-  const { clean, missing } = validateAnswers(body.answers, tracks);
+  const { clean, missing } = validateAnswers((await loadQuestions(env)).sections, body.answers, tracks);
   const submitting = !!body.submit;
   if (submitting) {
     if (!tracks.length) throw new HttpError(400, 'Choose sonorumBands, sonorumCreate, or both.');
@@ -345,6 +383,7 @@ async function boardState(env) {
   ]);
   const { draftCount } = await env.DB.prepare('SELECT COUNT(*) AS draftCount FROM member_profiles WHERE submitted_at IS NULL').first();
   const r = rev.results[0];
+  const questions = await loadQuestions(env);
   return {
     revision: r.revision,
     updatedBy: r.updated_by,
@@ -364,6 +403,7 @@ async function boardState(env) {
     groups: groups.results.map((g) => ({ ...g, memberIds: placements.results.filter((p) => p.group_id === g.id).map((p) => p.user_id) })),
     publications: Object.fromEntries(pubs.results.map((p) => [p.track, { publishedAt: p.published_at, publishedBy: p.published_by, snapshot: JSON.parse(p.snapshot) }])),
     board: board.results.map((b) => b.email),
+    questions,
   };
 }
 
@@ -433,10 +473,10 @@ async function saveNote(env, user, userId, body) {
 }
 
 /** The only fields about a person that ever reach other members. */
-function publicParts(answers, track) {
+function publicParts(sections, answers, track) {
   const held = answers[COVERAGE[track].question] || {};
   const rank = { strong: 0, comfortable: 1, learning: 2 };
-  return Object.keys(held).sort((a, b) => rank[held[a]] - rank[held[b]]).map((v) => findOption(COVERAGE[track].question, v));
+  return Object.keys(held).sort((a, b) => rank[held[a]] - rank[held[b]]).map((v) => findOption(sections, COVERAGE[track].question, v));
 }
 
 async function publish(env, user, track, body) {
@@ -453,12 +493,13 @@ async function publish(env, user, track, body) {
        WHERE g.track = ? ORDER BY gm.added_at`,
     ).bind(track),
   ]);
+  const { sections } = await loadQuestions(env);
   const snapshot = {
     groups: groups.results
       .map((g) => ({
         id: g.id,
         name: g.name,
-        members: rows.results.filter((r) => r.group_id === g.id).map((r) => ({ id: r.id, name: r.full_name, email: r.email, parts: publicParts(JSON.parse(r.answers), track) })),
+        members: rows.results.filter((r) => r.group_id === g.id).map((r) => ({ id: r.id, name: r.full_name, email: r.email, parts: publicParts(sections, JSON.parse(r.answers), track) })),
       }))
       .filter((g) => g.members.length),
   };
@@ -547,6 +588,7 @@ async function handleApi(request, env) {
     if (method === 'PUT' && a === 'notes' && b) return saveNote(env, user, b, body);
     if (method === 'POST' && a === 'publish' && b) return publish(env, user, b, body);
     if (method === 'POST' && a === 'unpublish' && b) return unpublish(env, user, b);
+    if (method === 'PUT' && a === 'questions') return saveQuestions(env, user, body);
     if (method === 'POST' && a === 'access') return addBoard(env, user, body);
     if (method === 'DELETE' && a === 'access') return removeBoard(env, user, body);
   }

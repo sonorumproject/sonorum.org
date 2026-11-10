@@ -254,9 +254,12 @@ function askToVerify(token) {
 
 async function start() {
   const hash = location.hash.slice(1);
-  if (hash.startsWith('verify=')) history.replaceState(null, '', location.pathname);
+  if (hash.startsWith('verify=')) {
+    history.replaceState(null, '', location.pathname);
+    // Confirming signs in as the new account, even if another account is signed in here.
+    return askToVerify(hash.slice(7));
+  }
   const me = await api('/me');
-  if (!me.user && hash.startsWith('verify=')) return askToVerify(hash.slice(7));
   if (!me.user) {
     location.replace('/join/#signin');
     return;

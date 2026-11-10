@@ -79,3 +79,7 @@ The seed replaces local data with made-up members and two board accounts (`board
    ```
 
 The site used to deploy from the repo root on GitHub Pages. The pages now live in `public/`, so merging this to `main` breaks the Pages site unless the domain has already moved to the Worker.
+
+## License
+
+[AGPL-3.0](LICENSE). Source: https://github.com/sonorumproject/sonorum.org

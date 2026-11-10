@@ -12,5 +12,14 @@
   },
   "devDependencies": {
     "wrangler": "^4.158.0"
+  },
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sonorumproject/sonorum.org.git"
+  },
+  "homepage": "https://sonorum.org",
+  "bugs": {
+    "url": "https://github.com/sonorumproject/sonorum.org/issues"
   }
 }

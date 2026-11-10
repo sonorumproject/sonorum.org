@@ -95,6 +95,10 @@ footer { padding: 20px 0 40px; color: var(--gray); }
 textarea.input { border: 1px solid var(--black); padding: 6px 8px; min-height: 84px; resize: vertical; display: block; }
 textarea.input:focus { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
 select.input { padding-right: 4px; }
+.pw-wrap { position: relative; display: block; }
+.pw-wrap .input { padding-right: 30px; }
+.pw-toggle { position: absolute; right: 0; bottom: 3px; padding: 2px; border: 0; background: none; color: var(--gray); cursor: pointer; line-height: 0; }
+.pw-toggle:hover { color: var(--primary); }
 
 /* Choice chips: real inputs, styled through their label */
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }

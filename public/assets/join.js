@@ -1,6 +1,7 @@
-import { api, setYear } from '/assets/ui.js';
+import { api, setYear, passwordToggles } from '/assets/ui.js';
 import { CONSENT_TEXT } from '/assets/questions.js';
 setYear();
+passwordToggles();
 document.querySelector('[data-consent-text]').textContent = CONSENT_TEXT;
 
 const views = [...document.querySelectorAll('[data-view]')];

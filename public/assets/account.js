@@ -1,6 +1,7 @@
-import { api, h, setYear, formatDate } from '/assets/ui.js';
+import { api, h, setYear, formatDate, passwordToggles } from '/assets/ui.js';
 import { CONSENT_TEXT, DAYS, LEVELS, TIMES, TRACKS, sectionsFor, validateAnswers } from '/assets/questions.js';
 setYear();
+passwordToggles();
 
 const $ = (id) => document.getElementById(id);
 const state = { sections: [], tracks: new Set(), answers: {}, submittedAt: null, dirty: false };
